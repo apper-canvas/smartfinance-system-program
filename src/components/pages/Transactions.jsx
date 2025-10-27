@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import CategoryModal from "@/components/organisms/CategoryModal";
 import { transactionService } from "@/services/api/transactionService";
 import { categoryService } from "@/services/api/categoryService";
 import { endOfMonth, format, parseISO, startOfMonth } from "date-fns";
@@ -11,6 +10,7 @@ import Button from "@/components/atoms/Button";
 import Input from "@/components/atoms/Input";
 import Card from "@/components/atoms/Card";
 import TransactionModal from "@/components/organisms/TransactionModal";
+import CategoryModal from "@/components/organisms/CategoryModal";
 import Loading from "@/components/ui/Loading";
 import Empty from "@/components/ui/Empty";
 import Error from "@/components/ui/Error";
@@ -217,10 +217,10 @@ const closeModal = () => {
   const totals = calculateTotals();
   const hasActiveFilters = Object.values(filters).some(value => value !== "");
 
-  return (
-<div className="max-w-7xl mx-auto space-y-6">
+return (
+    <div className="max-w-7xl mx-auto space-y-6">
       {/* Header */}
-<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
             Transactions
@@ -239,18 +239,69 @@ const closeModal = () => {
             Manage Categories
           </Button>
           <Button
-          variant="primary" 
-          size="lg"
-          onClick={() => {
-            setModalMode("add");
-            setShowTransactionModal(true);
-          }}
-          className="mt-4 sm:mt-0"
-        >
-          <ApperIcon name="Plus" size={16} className="mr-2" />
-          Add Transaction
-        </Button>
+            variant="primary" 
+            size="lg"
+            onClick={() => {
+              setModalMode("add");
+              setShowTransactionModal(true);
+            }}
+            className="mt-4 sm:mt-0"
+          >
+            <ApperIcon name="Plus" size={16} className="mr-2" />
+            Add Transaction
+          </Button>
+        </div>
       </div>
+
+      {/* All Transactions */}
+      <Card>
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center space-x-4">
+            <h2 className="text-lg font-semibold text-gray-900">
+              All Transactions
+            </h2>
+            <Badge variant="default" size="sm">
+              {filteredTransactions.length} transaction{filteredTransactions.length !== 1 ? "s" : ""}
+            </Badge>
+            {hasActiveFilters && (
+              <Badge variant="primary" size="sm">
+                Filtered
+              </Badge>
+            )}
+          </div>
+        </div>
+
+        {filteredTransactions.length === 0 ? (
+          <Empty 
+            type="transactions"
+            title={hasActiveFilters ? "No matching transactions" : "No transactions yet"}
+            description={
+              hasActiveFilters 
+                ? "Try adjusting your filters to see more transactions."
+                : "Start tracking your finances by adding your first transaction."
+            }
+            actionText="Add Transaction"
+            onAction={() => {
+              setModalMode("add");
+              setShowTransactionModal(true);
+            }}
+            showAction={!hasActiveFilters}
+          />
+        ) : (
+          <div className="divide-y divide-gray-100 -mx-6">
+            {filteredTransactions.map((transaction) => (
+              <div key={transaction.Id} className="px-6">
+                <TransactionItem 
+                  transaction={transaction} 
+                  onEdit={handleEditTransaction}
+                  onDelete={handleDeleteTransaction}
+                  showActions={true}
+                />
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
 
       {/* Filters */}
       <Card>
@@ -356,56 +407,6 @@ const closeModal = () => {
         </div>
       )}
 
-      {/* Transactions List */}
-      <Card>
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center space-x-4">
-            <h2 className="text-lg font-semibold text-gray-900">
-              All Transactions
-            </h2>
-            <Badge variant="default" size="sm">
-              {filteredTransactions.length} transaction{filteredTransactions.length !== 1 ? "s" : ""}
-            </Badge>
-            {hasActiveFilters && (
-              <Badge variant="primary" size="sm">
-                Filtered
-              </Badge>
-            )}
-          </div>
-        </div>
-
-        {filteredTransactions.length === 0 ? (
-          <Empty 
-            type="transactions"
-            title={hasActiveFilters ? "No matching transactions" : "No transactions yet"}
-            description={
-              hasActiveFilters 
-                ? "Try adjusting your filters to see more transactions."
-                : "Start tracking your finances by adding your first transaction."
-            }
-            actionText="Add Transaction"
-            onAction={() => {
-              setModalMode("add");
-              setShowTransactionModal(true);
-            }}
-            showAction={!hasActiveFilters}
-          />
-        ) : (
-          <div className="divide-y divide-gray-100 -mx-6">
-            {filteredTransactions.map((transaction) => (
-              <div key={transaction.Id} className="px-6">
-                <TransactionItem 
-                  transaction={transaction} 
-                  onEdit={handleEditTransaction}
-                  onDelete={handleDeleteTransaction}
-                  showActions={true}
-                />
-              </div>
-            ))}
-          </div>
-        )}
-      </Card>
-{/* Transaction Modal */}
       <TransactionModal
         isOpen={showTransactionModal}
         onClose={closeModal}
@@ -422,8 +423,6 @@ const closeModal = () => {
         mode="add"
       />
     </div>
-  );
-</div>
   );
 };
 
