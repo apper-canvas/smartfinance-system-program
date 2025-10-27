@@ -22,13 +22,16 @@ class CategoryService {
     return { ...category };
   }
 
-  async create(categoryData) {
+async create(categoryData) {
     await delay(300);
     
     // Find highest Id and add 1
     const maxId = Math.max(...this.categories.map(c => c.Id), 0);
     const newCategory = {
-      ...categoryData,
+      name: categoryData.name,
+      type: categoryData.type,
+      color: categoryData.color || "#3B82F6",
+      icon: categoryData.icon || "ShoppingCart",
       Id: maxId + 1,
     };
     
@@ -36,7 +39,7 @@ class CategoryService {
     return { ...newCategory };
   }
 
-  async update(id, categoryData) {
+async update(id, categoryData) {
     await delay(300);
     
     const index = this.categories.findIndex(c => c.Id === parseInt(id));
@@ -46,7 +49,10 @@ class CategoryService {
     
     this.categories[index] = {
       ...this.categories[index],
-      ...categoryData,
+      name: categoryData.name,
+      type: categoryData.type,
+      color: categoryData.color || this.categories[index].color,
+      icon: categoryData.icon || this.categories[index].icon,
       Id: parseInt(id), // Ensure Id remains unchanged
     };
     

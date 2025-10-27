@@ -1,20 +1,20 @@
-import React, { useState, useEffect } from "react";
-import Button from "@/components/atoms/Button";
-import Input from "@/components/atoms/Input";
-import Select from "@/components/atoms/Select";
-import Badge from "@/components/atoms/Badge";
-import Card from "@/components/atoms/Card";
-import TransactionItem from "@/components/molecules/TransactionItem";
-import Loading from "@/components/ui/Loading";
-import Error from "@/components/ui/Error";
-import Empty from "@/components/ui/Empty";
-import TransactionModal from "@/components/organisms/TransactionModal";
-import ApperIcon from "@/components/ApperIcon";
+import React, { useEffect, useState } from "react";
+import CategoryModal from "@/components/organisms/CategoryModal";
 import { transactionService } from "@/services/api/transactionService";
 import { categoryService } from "@/services/api/categoryService";
-import { format, parseISO, startOfMonth, endOfMonth } from "date-fns";
+import { endOfMonth, format, parseISO, startOfMonth } from "date-fns";
 import { toast } from "react-toastify";
-
+import ApperIcon from "@/components/ApperIcon";
+import Badge from "@/components/atoms/Badge";
+import Select from "@/components/atoms/Select";
+import Button from "@/components/atoms/Button";
+import Input from "@/components/atoms/Input";
+import Card from "@/components/atoms/Card";
+import TransactionModal from "@/components/organisms/TransactionModal";
+import Loading from "@/components/ui/Loading";
+import Empty from "@/components/ui/Empty";
+import Error from "@/components/ui/Error";
+import TransactionItem from "@/components/molecules/TransactionItem";
 const Transactions = () => {
   const [transactions, setTransactions] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -22,11 +22,11 @@ const Transactions = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   
-  // Modal states
+// Modal states
   const [showTransactionModal, setShowTransactionModal] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState(null);
   const [modalMode, setModalMode] = useState("add");
-  
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
   // Filter states
   const [filters, setFilters] = useState({
     type: "",
@@ -59,6 +59,18 @@ const Transactions = () => {
       console.error("Transactions loading error:", err);
     } finally {
       setLoading(false);
+    }
+};
+
+const handleSaveCategory = async (categoryData) => {
+    try {
+      await categoryService.create(categoryData);
+      toast.success("Category created successfully!");
+      // Reload categories to update transaction modal options
+      await loadData();
+    } catch (error) {
+      toast.error(error.message || "Failed to create category");
+      throw error;
     }
   };
 
@@ -161,10 +173,18 @@ const Transactions = () => {
     }
   };
 
-  const closeModal = () => {
+const closeModal = () => {
     setShowTransactionModal(false);
     setEditingTransaction(null);
     setModalMode("add");
+  };
+
+  const openManageCategoriesModal = () => {
+    setShowCategoryModal(true);
+  };
+
+  const closeCategoryModal = () => {
+    setShowCategoryModal(false);
   };
 
   // Calculate totals for filtered transactions
@@ -200,7 +220,7 @@ const Transactions = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
             Transactions
@@ -210,7 +230,15 @@ const Transactions = () => {
           </p>
         </div>
         
-        <Button 
+        <div className="flex flex-wrap gap-3 mt-4 sm:mt-0">
+          <Button 
+            variant="outline"
+            onClick={openManageCategoriesModal}
+          >
+            <ApperIcon name="FolderPlus" size={16} />
+            Manage Categories
+          </Button>
+          <Button
           variant="primary" 
           size="lg"
           onClick={() => {
@@ -377,8 +405,7 @@ const Transactions = () => {
           </div>
         )}
       </Card>
-
-      {/* Transaction Modal */}
+{/* Transaction Modal */}
       <TransactionModal
         isOpen={showTransactionModal}
         onClose={closeModal}
@@ -386,7 +413,17 @@ const Transactions = () => {
         transaction={editingTransaction}
         mode={modalMode}
       />
+
+      {/* Category Modal */}
+      <CategoryModal
+        isOpen={showCategoryModal}
+        onClose={closeCategoryModal}
+        onSubmit={handleSaveCategory}
+        mode="add"
+      />
     </div>
+  );
+</div>
   );
 };
 
