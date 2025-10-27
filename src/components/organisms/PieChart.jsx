@@ -130,10 +130,10 @@ const PieChart = ({
               },
             },
           },
-        ],
+],
       });
     }
-  }, [data, chartSeries]);
+  }, [data]);
 
   if (loading) {
     return <Loading type="chart" />;
